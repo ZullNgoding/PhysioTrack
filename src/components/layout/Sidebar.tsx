@@ -9,6 +9,7 @@ const navItems = [
   { icon: 'analytics', label: 'Reports', href: '/reports' }, 
   { icon: 'exercise', label: 'Exercises', href: '/exercises' }, 
   { icon: 'chat', label: 'Messages', href: '/messages' },
+  
 ];
 
 export const Sidebar = () => {
@@ -34,14 +35,23 @@ export const Sidebar = () => {
         </div>
 
         <div className="flex flex-col gap-1">
-          <button className="flex items-center gap-3 rounded-lg px-3 py-2 text-text-muted-light hover:bg-gray-100 dark:hover:bg-gray-700">
+          {/* Settings Link */}
+          <Link 
+            href="/settings" 
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-text-muted-light dark:text-text-muted-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
             <span className="material-symbols-outlined">settings</span>
             <p className="text-sm font-medium leading-normal">Settings</p>
-          </button>
-          <button className="flex items-center gap-3 rounded-lg px-3 py-2 text-text-muted-light hover:bg-gray-100 dark:hover:bg-gray-700">
+          </Link>
+          
+          {/* Logout Link */}
+          <Link 
+            href="/login" 
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-text-muted-light dark:text-text-muted-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
             <span className="material-symbols-outlined">logout</span>
             <p className="text-sm font-medium leading-normal">Logout</p>
-          </button>
+          </Link>
         </div>
       </div>
     </aside>

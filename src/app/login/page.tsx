@@ -3,12 +3,15 @@
 import React, { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import { Logo } from '@/components/ui/Logo';
 import { api } from '@/lib/api';
 
 export default function AuthPage() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
+  const [role, setRole] = useState<'Patient' | 'Doctor'>('Patient');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,7 +29,6 @@ export default function AuthPage() {
 
     try {
       if (isLogin) {
-        // --- LOGIN FLOW ---
         const result = await signIn('credentials', {
           email,
           password,
@@ -34,26 +36,22 @@ export default function AuthPage() {
         });
 
         if (result?.error) {
-          // NextAuth returns generic "CredentialsSignin" error often, but let's try to be specific if possible
-          // In a real production app, you might want to parse the error code
           setError('Invalid credentials or email not verified.');
         } else {
           router.push('/dashboard');
         }
       } else {
-        // --- REGISTER FLOW ---
         await api.post('/auth/register', {
             name,
             email,
             password,
-            role: 'Patient' // Default role, or add a selector UI
+            role,
         });
-        setSuccess('Registration successful! Please check your email to verify your account.');
-        setIsLogin(true); // Switch back to login
+        setSuccess(`Registration successful! Please check your email to verify your ${role} account.`);
+        setIsLogin(true);
       }
     } catch (e: any) {
       console.error(e);
-      // Try to extract message from backend error if available
       setError(e.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -64,27 +62,37 @@ export default function AuthPage() {
     <div className="min-h-screen w-full bg-background-light dark:bg-background-dark flex items-center justify-center p-4">
       <div className="w-full max-w-4xl bg-card-light dark:bg-card-dark rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2 border border-border-light dark:border-border-dark">
         
-        {/* Left: Hero (Hidden on mobile) */}
-        <div className="hidden md:flex flex-col p-12 bg-gray-50 dark:bg-gray-800/50 justify-between">
-           <div className="flex items-center gap-2">
-              <Logo className="size-8" />
-              <span className="text-xl font-bold text-text-light dark:text-text-dark">PhysioTrack</span>
+        {/* Left: Hero Image & Content */}
+        <div className="hidden md:flex relative overflow-hidden flex-col p-12 justify-between min-h-[600px]">
+           <Image 
+             src="/loginregister.png" 
+             alt="PhysioTrack Spine Model"
+             fill
+             className="object-cover" 
+             priority
+           />
+
+           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+           <div className="relative z-10 flex items-center gap-2">
+              <Logo className="size-8 text-white" />
+              <span className="text-xl font-bold text-white">PhysioTrack</span>
            </div>
-           <div>
-              <h1 className="text-3xl font-black leading-tight mb-4 text-text-light dark:text-text-dark">
+           
+           <div className="relative z-10">
+              <h1 className="text-3xl font-black leading-tight mb-4 text-white">
                 {isLogin ? 'Welcome Back!' : 'Join PhysioTrack'}
               </h1>
-              <p className="text-text-muted-light dark:text-text-muted-dark">
+              <p className="text-gray-200">
                 {isLogin 
                   ? 'Streamline your recovery journey with our advanced physiotherapy management tools.' 
                   : 'Create an account to start tracking your progress and connecting with therapists.'}
               </p>
            </div>
-           <div className="text-sm text-text-muted-light">© 2024 PhysioTrack Inc.</div>
+           <div className="relative z-10 text-sm text-gray-300">© 2024 PhysioTrack Inc.</div>
         </div>
 
         {/* Right: Form */}
-        <div className="flex flex-col p-8 md:p-12 justify-center">
+        <div className="flex flex-col p-8 md:p-12 justify-center bg-card-light dark:bg-card-dark">
             <div className="flex w-full border-b border-border-light dark:border-border-dark mb-6">
                 <button 
                     onClick={() => { setIsLogin(true); setError(''); setSuccess(''); }}
@@ -119,10 +127,33 @@ export default function AuthPage() {
 
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
                 {!isLogin && (
-                    <div className="space-y-1">
-                        <label className="text-sm font-medium text-text-light dark:text-text-dark">Full Name</label>
-                        <input name="name" type="text" required className="w-full px-4 h-12 rounded-lg border border-border-light bg-background-light dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary outline-none text-text-light dark:text-text-dark" placeholder="John Doe" />
-                    </div>
+                    <>
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium text-text-light dark:text-text-dark">Full Name</label>
+                            <input name="name" type="text" required className="w-full px-4 h-12 rounded-lg border border-border-light bg-background-light dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-primary outline-none text-text-light dark:text-text-dark" placeholder="John Doe" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium text-text-light dark:text-text-dark">I am a...</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setRole('Patient')}
+                                    className={`h-12 rounded-lg border font-medium text-sm transition-all flex items-center justify-center gap-2 ${role === 'Patient' ? 'border-primary bg-primary/10 text-primary' : 'border-border-light dark:border-gray-600 text-text-muted-light hover:border-primary/50'}`}
+                                >
+                                    <span className="material-symbols-outlined text-lg">personal_injury</span>
+                                    Patient
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setRole('Doctor')}
+                                    className={`h-12 rounded-lg border font-medium text-sm transition-all flex items-center justify-center gap-2 ${role === 'Doctor' ? 'border-primary bg-primary/10 text-primary' : 'border-border-light dark:border-gray-600 text-text-muted-light hover:border-primary/50'}`}
+                                >
+                                    <span className="material-symbols-outlined text-lg">stethoscope</span>
+                                    Doctor
+                                </button>
+                            </div>
+                        </div>
+                    </>
                 )}
 
                 <div className="space-y-1">
@@ -137,7 +168,7 @@ export default function AuthPage() {
 
                 {isLogin && (
                     <div className="flex justify-end">
-                        <a href="/forgot-password" class="text-sm font-semibold text-primary hover:underline">Forgot Password?</a>
+                        <Link href="/forgot-password" className="text-sm font-semibold text-primary hover:underline">Forgot Password?</Link>
                     </div>
                 )}
 
